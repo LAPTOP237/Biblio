@@ -108,6 +108,7 @@ public class AdherentManager {
                     adherent.setNombreEmpruntsMax(resultSet.getInt("nombreEmpruntsMax"));
                     adherent.setDureePret(resultSet.getInt("dureePret"));
                 }
+                resultSet.close(); 
             }
         }
         return adherent;

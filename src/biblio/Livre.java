@@ -11,8 +11,10 @@ import java.util.*;
  */
 public class Livre extends Document{
     
+    // Default constructor
+    public Livre(){}
      /**
-     * Default constructor
+     * 
      * @param titre
      * @param localisation
      * @param nbExemplaires

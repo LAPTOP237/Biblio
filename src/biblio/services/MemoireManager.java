@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class MemoireManager {
     public static void ajouterMemoire(Memoire memoire) {
-        String query = "INSERT INTO memoire (nomCandidat, titreMemoire, dateSoutenance,code_doc) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO memoire (nomCandidat, titreMemoire, dateSoutenance,code_doc) VALUES (?, ?, ?, ?)";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, memoire.getNomCandidat());
@@ -47,7 +47,7 @@ public class MemoireManager {
     }
 
     public static void supprimerMemoire(int idMemoire) {
-        String query = "DELETE FROM memoire WHERE code = ?";
+        String query = "DELETE FROM memoire WHERE code_doc = ?";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idMemoire);
@@ -59,16 +59,16 @@ public class MemoireManager {
 
     public static List<Memoire> afficherListeMemoires() {
         List<Memoire> memoires = new ArrayList<>();
-        String query = "SELECT * FROM memoire";
+        String query = "SELECT * FROM memoire JOIN document ON memoire.code_doc = document.code";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("code_doc"));
-                int code = resultSet.getInt("code");
-                String titre = document.getTitre();
-                String localisation = document.getLocalisation();
-                int nbExemplaires = document.getNbExemplaires();
+                //Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("memoire.code_doc"));
+                int code = resultSet.getInt("memoire.code");
+                String titre = resultSet.getString("document.titre");
+                String localisation = resultSet.getString("document.localisation");
+                int nbExemplaires = resultSet.getInt("document.nbExemplaires");
                 String nomCandidat = resultSet.getString("nomCandidat");
                 String titreMemoire = resultSet.getString("titreMemoire");
                 Date dateSoutenance = resultSet.getDate("dateSoutenance");
@@ -81,6 +81,32 @@ public class MemoireManager {
         }
         return memoires;
     }
+
+  public static Memoire rechercherMemoireParId(int idMemoire) throws SQLException {
+    Memoire memoire = null;
+    String query = "SELECT * FROM memoire WHERE code_doc = ?";
+    try (Connection connection = DatabaseManager.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        preparedStatement.setInt(1, idMemoire);
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            if (resultSet.next()) {
+                // Récupération des informations du mémoire depuis la base de données
+                String titre = resultSet.getString("titre");
+                String localisation = resultSet.getString("localisation");
+                int nbExemplaires = resultSet.getInt("nbExemplaires");
+                String candidat = resultSet.getString("nomCandidat");
+                String titreMemoire = resultSet.getString("titreMemoire");
+                Date dateSoutenance = resultSet.getDate("dateSoutenance");
+
+                // Création d'un objet Memoire
+                memoire = new Memoire(titre, localisation, nbExemplaires, candidat, titreMemoire, dateSoutenance);
+                memoire.setCodeDoc(resultSet.getInt("code_doc"));
+                memoire.setCode(resultSet.getInt("code"));
+            }
+        }
+    }
+    return memoire;
+}
 
     
 }

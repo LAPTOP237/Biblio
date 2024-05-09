@@ -4,24 +4,34 @@
  */
 package biblio;
 
+import biblio.utils.DateUtils;
+import static biblio.utils.DateUtils.convertDateToString;
+import java.text.ParseException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author LINJOUOM ALAIN P
  */
 public class Emprunt {
+    // Default constructor
+    public Emprunt(){}
      /**
-     * Default constructor
+     * 
      * @param adherent
      * @param document
      * @param dateDebut
-     * @param dateLimite
      */
-    public Emprunt(Adherent adherent, Document document, Date dateDebut, Date dateLimite) {
+    public Emprunt(Adherent adherent, Document document, Date dateDebut) {
         this.adherent = adherent;
         this.document = document;
         this.dateDebut = dateDebut;
-        this.dateLimite = dateLimite;
+        try {
+            this.dateLimite = DateUtils.getNext(convertDateToString(dateDebut),adherent.getDureePret() ) ;
+        } catch (ParseException ex) {
+            Logger.getLogger(Emprunt.class.getName()).log(Level.SEVERE, null, ex);
+        }
         this.dateRetour = null;
     }
 
@@ -82,6 +92,11 @@ public class Emprunt {
 
     public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
+        try {
+            this.dateLimite = DateUtils.getNext(convertDateToString(dateDebut),adherent.getDureePret() ) ;
+        } catch (ParseException ex) {
+            Logger.getLogger(Emprunt.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public Date getDateLimite() {

@@ -61,18 +61,38 @@ public class EmpruntManager {
     // Méthode pour afficher la liste des emprunts
     public static List<Emprunt> listerEmprunts() throws SQLException {
         List<Emprunt> emprunts = new ArrayList<>();
-        String query = "SELECT * FROM emprunt";
+        String query = "SELECT e.*, a.typeAdherent AS type, a.nom AS adherent_nom, a.prenom AS adherent_prenom, d.titre AS document_titre " +
+                   "FROM emprunt e " +
+                   "JOIN adherent a ON e.adherent_id = a.identifiant " +
+                   "JOIN document d ON e.document_code = d.code";
         try (Connection connection = DatabaseManager.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 ResultSet resultSet = preparedStatement.executeQuery(query);
                 while (resultSet.next()) { 
-                    Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
-                    Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
+                   // int adherent_id = resultSet.getInt("adherent_id");
+                   // int document_code = resultSet.getInt("document_code");
                     Date dateDebut = resultSet.getDate("dateDebut");
-                    Date dateLimite = resultSet.getDate("dateLimite");
                     Date dateRetour = resultSet.getDate("dateRetour");
-                    Emprunt emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
+                    String adherentNom = resultSet.getString("adherent_nom");
+                    String adherentPrenom = resultSet.getString("adherent_prenom");
+                    int adherentType = resultSet.getInt("type");
+                    String documentTitre = resultSet.getString("document_titre");
+                   // Adherent adherent = AdherentManager.rechercherAdherentParId(adherent_id);
+                   // Document document = DocumentManager.rechercherDocumentParId(document_code);
+                    Adherent adherent = new Adherent();
+                    adherent.setNom(adherentNom);
+                    adherent.setPrenom(adherentPrenom);
+                    adherent.setTypeAdherent(adherentType);
+
+                    Document document = new Document();
+                    document.setTitre(documentTitre);
+                    Emprunt emprunt = new Emprunt();
+                    emprunt.setAdherent(adherent);
+                    emprunt.setDocument(document);
+                    emprunt.setDateDebut(dateDebut);
                     emprunt.setDateRetour(dateRetour);
+                    
+
                     emprunts.add(emprunt);
                 }
                 return emprunts;
@@ -86,17 +106,19 @@ public class EmpruntManager {
             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idEmprunt);
             ResultSet resultSet = preparedStatement.executeQuery();
-            Emprunt emprunt = null;
+            Emprunt emprunt = new Emprunt();
             if (resultSet.next()) {
-                Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
-                Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
                 Date dateDebut = resultSet.getDate("dateDebut");
-                Date dateLimite = resultSet.getDate("dateLimite");
+                //Date dateLimite = resultSet.getDate("dateLimite");
                 Date dateRetour = resultSet.getDate("dateRetour");
-                emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
                 emprunt.setId(resultSet.getInt("id"));
                 emprunt.setDateRetour(dateRetour);
+                emprunt.setDateDebut(dateDebut);
             }
+          Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
+          Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
+          emprunt.setAdherent(adherent);
+          emprunt.setDocument(document);
             return emprunt;
         }
     }
@@ -112,9 +134,9 @@ public class EmpruntManager {
                 Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
                 Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
                 Date dateDebut = resultSet.getDate("dateDebut");
-                Date dateLimite = resultSet.getDate("dateLimite");
+               // Date dateLimite = resultSet.getDate("dateLimite");
                 Date dateRetour = resultSet.getDate("dateRetour");
-                Emprunt emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
+                Emprunt emprunt = new Emprunt(adherent, document, dateDebut);
                 emprunt.setId(resultSet.getInt("id"));
                 emprunt.setDateRetour(dateRetour);
                 retardataires.add(emprunt);
@@ -127,7 +149,7 @@ public class EmpruntManager {
     public static List<Adherent> listerAdherentsRetardataires() {
         List<Adherent> adherentsRetardataires = new ArrayList<>();
         String query = "SELECT DISTINCT e.adherent_id, a.nom, a.prenom FROM emprunt e " +
-                       "INNER JOIN adherent a ON e.adherent_id = a.id " +
+                       "INNER JOIN adherent a ON e.adherent_id = a.identifiant " +
                        "WHERE e.dateRetour IS NULL AND e.dateLimite < CURDATE()";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -176,9 +198,9 @@ public class EmpruntManager {
                 Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
                 Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
                 Date dateDebut = resultSet.getDate("dateDebut");
-                Date dateLimite = resultSet.getDate("dateLimite");
+                // Date dateLimite = resultSet.getDate("dateLimite");
                 Date dateRetour = resultSet.getDate("dateRetour");
-                Emprunt emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
+                Emprunt emprunt = new Emprunt(adherent, document, dateDebut);
                 emprunt.setId(resultSet.getInt("id"));
                 emprunt.setDateRetour(dateRetour);
                 emprunts.add(emprunt);
@@ -200,9 +222,9 @@ public class EmpruntManager {
                 Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
                 Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
                 Date dateDebut = resultSet.getDate("dateDebut");
-                Date dateLimite = resultSet.getDate("dateLimite");
+                // Date dateLimite = resultSet.getDate("dateLimite");
                 Date dateRetour = resultSet.getDate("dateRetour");
-                Emprunt emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
+                Emprunt emprunt = new Emprunt(adherent, document, dateDebut);
                 emprunt.setId(resultSet.getInt("id"));
                 emprunt.setDateRetour(dateRetour);
                 emprunts.add(emprunt);
@@ -224,9 +246,8 @@ public class EmpruntManager {
                 Adherent adherent = AdherentManager.rechercherAdherentParId(resultSet.getInt("adherent_id"));
                 Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("document_code"));
                 Date dateDebut = resultSet.getDate("dateDebut");
-                Date dateLimite = resultSet.getDate("dateLimite");
                 Date dateRetour = resultSet.getDate("dateRetour");
-                Emprunt emprunt = new Emprunt(adherent, document, dateDebut, dateLimite);
+                Emprunt emprunt = new Emprunt(adherent, document, dateDebut);
                 emprunt.setId(resultSet.getInt("id"));
                 emprunt.setDateRetour(dateRetour);
                 emprunts.add(emprunt);

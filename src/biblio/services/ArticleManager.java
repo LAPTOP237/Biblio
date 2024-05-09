@@ -49,7 +49,7 @@ public class ArticleManager {
 
     // Méthode pour supprimer un article
     public static void supprimerArticle(int idArticle) {
-        String query = "DELETE FROM article WHERE code = ?";
+        String query = "DELETE FROM article WHERE code_doc = ?";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idArticle);
@@ -62,16 +62,16 @@ public class ArticleManager {
     // Méthode pour afficher la liste des articles
     public static List<Article> afficherListeArticles() {
         List<Article> articles = new ArrayList<>();
-        String query = "SELECT * FROM article";
+        String query = "SELECT * FROM article JOIN document ON article.code_doc = document.code";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("code_doc"));
-                int code = resultSet.getInt("code");
-                String titre = document.getTitre();
-                String localisation = document.getLocalisation();
-                int nbExemplaires = document.getNbExemplaires();
+                //Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("article.code_doc"));
+                int code = resultSet.getInt("article.code");
+                String titre = resultSet.getString("document.titre");
+                String localisation = resultSet.getString("document.localisation");
+                int nbExemplaires = resultSet.getInt("document.nbExemplaires");
                 String auteur = resultSet.getString("auteur");
                 Date datePublication = resultSet.getDate("datePublication");
                 Article article = new Article(titre, localisation, nbExemplaires, auteur, datePublication);
@@ -83,5 +83,31 @@ public class ArticleManager {
         }
         return articles;
     }
+
+//Rechercher Article par code du codocument
+    public static Article rechercherArticleParId(int idArticle) throws SQLException {
+    Article article = null;
+    String query = "SELECT * FROM article WHERE code_doc = ?";
+    try (Connection connection = DatabaseManager.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        preparedStatement.setInt(1, idArticle);
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            if (resultSet.next()) {
+                // Récupération des informations de l'article depuis la base de données
+                String titre = resultSet.getString("titre");
+                String localisation = resultSet.getString("localisation");
+                int nbExemplaires = resultSet.getInt("nbExemplaires");
+                String auteur = resultSet.getString("auteur");
+                Date datePublication = resultSet.getDate("datePublication");
+
+                // Création d'un objet Article
+                article = new Article(titre, localisation, nbExemplaires, auteur, datePublication);
+                article.setCodeDoc(resultSet.getInt("code_doc"));
+                article.setCode(resultSet.getInt("code"));
+            }
+        }
+    }
+    return article;
+}
     
 }

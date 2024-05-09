@@ -145,6 +145,24 @@ public class Adherent {
      */
     public void setTypeAdherent(int typeAdherent) {
         this.typeAdherent = typeAdherent;
+        switch (typeAdherent){
+                case 1 -> {
+                    this.nombreEmpruntsMax = 2;
+                    this.dureePret = 7;
+            }
+                case 2 -> {
+                    this.nombreEmpruntsMax = 4;
+                    this.dureePret = 21;
+            }
+                case 3 -> {
+                    this.nombreEmpruntsMax = 1;
+                    this.dureePret = 7;
+            }
+                default -> {
+                    this.nombreEmpruntsMax = 1;
+                    this.dureePret = 7;
+            }
+            }
     }
     /**
      * @return 

@@ -4,8 +4,12 @@
  */
 package biblio.services;
 
+import biblio.Article;
 import biblio.Document;
 import biblio.DatabaseManager;
+import biblio.Livre;
+import biblio.Magazine;
+import biblio.Memoire;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +19,26 @@ import java.util.List;
  */
 public class DocumentManager {
     // Méthode pour ajouter un document à la base de données
-    public static void ajouterDocument(Document document) throws SQLException {
+    public static int ajouterDocument(Document document) throws SQLException {
         String query = "INSERT INTO document (titre, localisation, nbExemplaires) VALUES ( ?, ?, ?)";
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
             // Paramètres pour l'ajout du document
             preparedStatement.setString(1, document.getTitre());
             preparedStatement.setString(2, document.getLocalisation());
             preparedStatement.setInt(3, document.getNbExemplaires());
             // Exécution de la requête d'insertion
             preparedStatement.executeUpdate();
+            // Récupérer l'identifiant généré pour le nouveau document
+            try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                }
+            }
+            // Retourner -1 en cas d'échec
+            return -1;
         }
-    }
 
     // Méthode pour supprimer un document de la base de données par son code
     public static void supprimerDocument(int code) throws SQLException {
@@ -38,10 +50,14 @@ public class DocumentManager {
             // Exécution de la requête de suppression
             preparedStatement.executeUpdate();
         }
+        LivreManager.supprimerLivre(code);
+        MemoireManager.supprimerMemoire(code);
+        MagazineManager.supprimerMagazine(code);
+        ArticleManager.supprimerArticle(code);
     }
 
     // Méthode pour modifier les informations du document dans la base de données
-    public static void modifierDocument(Document document) throws SQLException {
+    public static int modifierDocument(Document document) throws SQLException {
         String query = "UPDATE document SET titre = ?, localisation = ?, nbExemplaires = ? WHERE code = ?";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -52,6 +68,7 @@ public class DocumentManager {
             preparedStatement.setInt(4, document.getCode());
             // Exécution de la requête de modification
             preparedStatement.executeUpdate();
+            return document.getCode();
         }
     }
 
@@ -94,12 +111,57 @@ public class DocumentManager {
                     document.setLocalisation(resultSet.getString("localisation"));
                     document.setNbExemplaires(resultSet.getInt("nbExemplaires"));
                 }
+                resultSet.close(); 
+            }
+        }
+         
+        return document;
+    }
+     // Méthode pour rechercher un document par son code version 2
+    public static Document rechercherDocumentParId2(int code) throws SQLException {
+        Document document = null;
+        String query = """
+                       SELECT 
+                           d.*,
+                           l.auteur AS auteur_livre,
+                           l.editeur AS editeur_livre,
+                           l.dateEdition AS date_edition_livre,
+                           m.nomCandidat AS candidat_memoire,
+                           m.titreMemoire AS titre_memoire,
+                           m.dateSoutenance AS date_soutenance_memoire,
+                           a.auteur AS auteur_article,
+                           a.datePublication AS date_publication_article,
+                           ma.frequenceParution AS frequence_parution_magazine
+                       FROM document d
+                       LEFT JOIN livre l ON d.code = l.code_doc
+                       LEFT JOIN memoire m ON d.code = m.code_doc
+                       LEFT JOIN magazine ma ON d.code = ma.code_doc
+                       LEFT JOIN article a ON  d.code = a.code_doc
+                       WHERE d.code = ?;""";
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            // Paramètre pour la recherche par code
+            preparedStatement.setInt(1, code);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Si un résultat est trouvé, créer un objet Document 
+                if (resultSet.next()) {
+                    if(resultSet.getString("auteur_livre")!= null )
+                    document = new Livre(resultSet.getString("d.titre"),resultSet.getString("d.localisation"),resultSet.getInt("d.nbExemplaires"),resultSet.getString("auteur_livre"),resultSet.getString("editeur_livre"),resultSet.getDate("date_edition_livre"));
+                
+                if(resultSet.getString("candidat_memoire")!= null )
+                    document = new Memoire(resultSet.getString("d.titre"),resultSet.getString("d.localisation"),resultSet.getInt("d.nbExemplaires"),resultSet.getString("candidat_memoire"),resultSet.getString("titre_memoire"),resultSet.getDate("date_soutenance_memoire"));
+                
+                if(resultSet.getString("auteur_article")!= null )
+                    document = new Article(resultSet.getString("d.titre"),resultSet.getString("d.localisation"),resultSet.getInt("d.nbExemplaires"),resultSet.getString("auteur_article"),resultSet.getDate("date_publication_article"));
+                
+                if(resultSet.getString("frequence_parution_magazine")!= null )
+                    document = new Magazine(resultSet.getString("d.titre"),resultSet.getString("d.localisation"),resultSet.getInt("d.nbExemplaires"),resultSet.getString("frequence_parution_magazine"));
+                }
             }
         }
         return document;
     }
-    
-    // Méthode pour rechercher un document par son code
+    // Méthode pour rechercher un document par son titre
     public static List<Document> rechercherDocumentParTitre(String titre) throws SQLException {
         List<Document> documents = new ArrayList<>();
         String query = "SELECT * FROM document WHERE titre LIKE ?";

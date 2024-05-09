@@ -119,7 +119,7 @@ public class UtilisateurManager {
     }
     
     // Méthode pour rechercher un utilisateur par son nom
-    public static List<Utilisateur> rechercherDocumentParNom(String nom) throws SQLException {
+    public static List<Utilisateur> rechercherUtilisateurParNom(String nom) throws SQLException {
         List<Utilisateur> utilisateurs = new ArrayList<>();
         String query = "SELECT * FROM utilisateur WHERE nom LIKE ?";
         try (Connection connection = DatabaseManager.getConnection();

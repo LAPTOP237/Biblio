@@ -48,7 +48,7 @@ public class LivreManager {
     }
 
     public static void supprimerLivre(int idLivre) {
-        String query = "DELETE FROM livre WHERE code = ?";
+        String query = "DELETE FROM livre WHERE code_doc = ?";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idLivre);
@@ -60,16 +60,16 @@ public class LivreManager {
 
     public static List<Livre> afficherListeLivres() {
         List<Livre> livres = new ArrayList<>();
-        String query = "SELECT * FROM livre";
+        String query = "SELECT * FROM livre JOIN document on livre.code_doc = document.code";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("code_doc"));
-                int code = resultSet.getInt("code");
-                String titre = document.getTitre();
-                String localisation = document.getLocalisation();
-                int nbExemplaires = document.getNbExemplaires();
+               // Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("livre.code_doc"));
+                int code = resultSet.getInt("livre.code");
+                String titre = resultSet.getString("document.titre");
+                String localisation = resultSet.getString("document.localisation");
+                int nbExemplaires = resultSet.getInt("document.nbExemplaires");
                 String auteur = resultSet.getString("auteur");
                 String editeur = resultSet.getString("editeur");
                 Date dateEdition = resultSet.getDate("dateEdition");
@@ -83,4 +83,31 @@ public class LivreManager {
         return livres;
     }
     
+    //Methode pour rechercher un Livre
+    public static Livre rechercherLivreParId(int idLivre) throws SQLException {
+    Livre livre = null;
+    String query = "SELECT * FROM livre WHERE code_doc = ?";
+    try (Connection connection = DatabaseManager.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        preparedStatement.setInt(1, idLivre);
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            if (resultSet.next()) {
+                // Récupération des informations du livre depuis la base de données
+                String titre = resultSet.getString("titre");
+                String localisation = resultSet.getString("localisation");
+                int nbExemplaires = resultSet.getInt("nbExemplaires");
+                String auteur = resultSet.getString("auteur");
+                String editeur = resultSet.getString("editeur");
+                Date dateEdition = resultSet.getDate("datEdition");
+
+                // Création d'un objet Livre
+                livre = new Livre(titre, localisation, nbExemplaires, auteur, editeur, dateEdition);
+                livre.setCodeDoc(resultSet.getInt("code_doc"));
+                livre.setCode(resultSet.getInt("code"));
+            }
+        }
+    }
+    return livre;
+}
+
 }

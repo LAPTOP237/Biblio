@@ -43,7 +43,7 @@ public class MagazineManager {
     }
 
     public static void supprimerMagazine(int idMagazine) {
-         String query = "DELETE FROM magazine WHERE code = ?";
+         String query = "DELETE FROM magazine WHERE code_doc = ?";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idMagazine);
@@ -55,16 +55,16 @@ public class MagazineManager {
 
     public static List<Magazine> afficherListeMagazines() {
         List<Magazine> magazines = new ArrayList<>();
-        String query = "SELECT * FROM magazine";
+        String query = "SELECT * FROM magazine JOIN document on magazine.code_doc = document.code;";
         try (Connection connection = DatabaseManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                 Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("code_doc"));
-                int code = resultSet.getInt("code");
-                String titre = document.getTitre();
-                String localisation = document.getLocalisation();
-                int nbExemplaires = document.getNbExemplaires();
+                // Document document = DocumentManager.rechercherDocumentParId(resultSet.getInt("magazine.code_doc"));
+                int code = resultSet.getInt("magazine.code");
+                String titre = resultSet.getString("document.titre");
+                String localisation = resultSet.getString("document.localisation");
+                int nbExemplaires = resultSet.getInt("document.nbExemplaires");
                 String frequenceParution = resultSet.getString("frequenceParution");
                 Magazine magazine = new Magazine(titre, localisation, nbExemplaires, frequenceParution);
                 magazine.setCode(code);
@@ -74,6 +74,30 @@ public class MagazineManager {
             e.printStackTrace();
         }
         return magazines;
+    }
+        //Recherche Magazine par code document
+    public static Magazine rechercherMagazineParId(int idMagazine) throws SQLException {
+        Magazine magazine = null;
+        String query = "SELECT * FROM magazine WHERE code_doc = ?";
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, idMagazine);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    // Récupération des informations du magazine depuis la base de données
+                    String titre = resultSet.getString("titre");
+                    String localisation = resultSet.getString("localisation");
+                    int nbExemplaires = resultSet.getInt("nbExemplaires");
+                    String frequenceParution = resultSet.getString("frequenceParution");
+
+                    // Création d'un objet Magazine
+                    magazine = new Magazine(titre, localisation, nbExemplaires, frequenceParution);
+                    magazine.setCodeDoc(resultSet.getInt("code_doc"));
+                    magazine.setCode(resultSet.getInt("code"));
+                }
+            }
+        }
+        return magazine;
     }
     
 }

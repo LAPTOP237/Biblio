@@ -10,8 +10,11 @@ import java.util.*;
  * @author LINJOUOM ALAIN P
  */
 public class Memoire extends Document{
+    
+    //Default constructor 
+    public Memoire(){}
      /**
-     * Default constructor
+     * 
      * @param titre
      * @param localisation
      * @param nbExemplaires

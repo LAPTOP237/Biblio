@@ -9,8 +9,10 @@ package biblio;
  * @author LINJOUOM ALAIN P
  */
 public class Magazine extends Document{
+    // Default constructor
+    public Magazine(){}
       /**
-     * Default constructor
+     * 
      * @param titre
      * @param localisation
      * @param nbExemplaires

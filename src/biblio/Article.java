@@ -10,8 +10,10 @@ import java.util.*;
  * @author LINJOUOM ALAIN P
  */
 public class Article extends Document{
+    // Default constructor
+    public Article(){}
     /**
-     * Default constructor
+     * 
      * @param titre
      * @param localisation
      * @param nbExemplaires

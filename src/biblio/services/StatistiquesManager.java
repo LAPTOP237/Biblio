@@ -14,22 +14,54 @@ import java.sql.*;
 public class StatistiquesManager {
      // Méthode pour calculer le nombre de livres
     public static int calculerNombreLivres() throws SQLException {
-        return calculerNombreDocuments("Livre");
+        int count;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String query = "SELECT COUNT(*) AS count FROM livre";
+            try (PreparedStatement statement = connection.prepareStatement(query); ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                count = resultSet.getInt("count");
+            }
+        }
+        return count;
     }
 
     // Méthode pour calculer le nombre de magazines
     public static int calculerNombreMagazines() throws SQLException {
-        return calculerNombreDocuments("Magazine");
+        int count;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String query = "SELECT COUNT(*) AS count FROM magazine";
+            try (PreparedStatement statement = connection.prepareStatement(query); ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                count = resultSet.getInt("count");
+            }
+        }
+        return count;
     }
 
     // Méthode pour calculer le nombre d'articles
     public static int calculerNombreArticles() throws SQLException {
-        return calculerNombreDocuments("Article");
+       int count;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String query = "SELECT COUNT(*) AS count FROM article";
+            try (PreparedStatement statement = connection.prepareStatement(query); ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                count = resultSet.getInt("count");
+            }
+        }
+        return count;
     }
 
     // Méthode pour calculer le nombre de mémoires
     public static int calculerNombreMemoires() throws SQLException {
-        return calculerNombreDocuments("Memoire");
+         int count;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String query = "SELECT COUNT(*) AS count FROM memoire";
+            try (PreparedStatement statement = connection.prepareStatement(query); ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                count = resultSet.getInt("count");
+            }
+        }
+        return count;
     }
 
     // Méthode pour calculer le nombre de documents en fonction du type
