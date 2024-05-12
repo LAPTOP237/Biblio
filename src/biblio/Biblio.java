@@ -12,10 +12,14 @@ import biblio.services.LivreManager;
 import biblio.services.MemoireManager;
 import biblio.services.MagazineManager;
 import biblio.services.ArticleManager;
+import biblio.services.Auth;
 import static biblio.services.DocumentManager.estDisponiblePourEmprunt;
 import biblio.services.EmpruntManager;
 import biblio.services.UtilisateurManager;
 import static biblio.utils.DateUtils.convertDateToString;
+import biblio.utils.ScannerUtils;
+
+import static java.lang.System.exit;
 import java.util.*;
 import java.sql.*;
 import java.text.ParseException;
@@ -56,7 +60,7 @@ public class Biblio {
      * MENU PRINCIPAL
      */
     public void menuPrincipal(){
-        int choix;
+        String choix;
          do {
             Scanner scanner = new Scanner(System.in);
             System.out.println("*********************");
@@ -69,32 +73,32 @@ public class Biblio {
             System.out.println("4. Gestion Utilisateurs");
             System.out.println("5. Statistiques");
             System.out.println("0. Quitter");
-            choix = scanner.nextInt();
+            choix = scanner.nextLine();
                 switch (choix) {
-                    case 1 -> {
+                    case "1" -> {
                         // Fonction menu Gestion Adherents
                         this.menuGestAdherents();
                     }
-                    case 2 -> {
+                    case "2" -> {
                         // Fonction menu Gestion Documents
                         this.menuGestDocuments();
                     }
-                    case 3 -> {
+                    case "3" -> {
                         // Fonction menu Gestion Emprunts
                         this.menuGestEmprunts();
                     }
-                    case 4 -> {
+                    case "4" -> {
                         // Fonction menu Gestion Utilisateurs
                         this.menuGestUtilisateurs();
                     }
-                    case 5 -> {
+                    case "5" -> {
                         // Fonction pour afficher les stats
                         this.stats();
                     }
-                    case 0 -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
-            } while (choix != 0);
+            } while (!"0".equals(choix));
     }
      /**
      * MENU Gestion Adherents
@@ -129,9 +133,9 @@ public class Biblio {
                         scanner.nextLine(); // Consommer le retour à la ligne
                         String adresse = scanner.nextLine();
                         System.out.print("Type d'adhérent (1: Etudiant, 2: Enseignant, 3: Visiteur) : ");
-                        int typeAdherent = scanner.nextInt();
-                        scanner.nextLine(); // Pour consommer le retour à la ligne
-                        
+                        int[] valeursAcceptees = {1,2,3};
+                        int typeAdherent = ScannerUtils.demanderEntier(valeursAcceptees);
+                        scanner.nextLine(); // Pour consommer le retour à la ligne      
                         Adherent adherent = new Adherent(nom,prenom,adresse,typeAdherent);
                         try {
                             // Appel de la méthode pour ajouter l'adhérent à la base de données
@@ -142,11 +146,12 @@ public class Biblio {
                                 System.out.println("Erreur lors de l'ajout de l'adhérent : " + e.getMessage() + " \n Appuyer sur Entrée pour continuer");
                             }
                         }
+
                     case "2" -> {
                         // Actions pour Modifier un Adherent
                         System.out.println("=== Modifier un adhérent ===");
                         System.out.print("Identifiant de l'adhérent à modifier : ");
-                        int identifiant = scanner.nextInt();
+                        int identifiant = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         try {
@@ -187,7 +192,7 @@ public class Biblio {
                         // Actions pour Supprimer un Adherent
                         System.out.println("=== Supprimer un adhérent ===");
                         System.out.print("Identifiant de l'adhérent à supprimer : ");
-                        int identifiant = scanner.nextInt();
+                        int identifiant = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Consommer le retour à la ligne
 
                         try {
@@ -205,12 +210,12 @@ public class Biblio {
                     case "4" -> {
                         // Actions pour Lister les Adherents
                         try {
-                            List<Adherent> adherents = AdherentManager.listerAdherents();
+                            List<Adherent> adherents1 = AdherentManager.listerAdherents();
                             System.out.println("=== Liste des adhérents ===");
                             System.out.printf("%-10s | %-15s | %-15s | %-40s | %-15s | %-20s | %-15s%n",
                                     "ID", "Nom", "Prénom", "Adresse", "Type", "Nombre Max Emprunts", "Durée Prêt");
                             System.out.println("-".repeat(120));
-                            for (Adherent adherent : adherents) {
+                            for (Adherent adherent : adherents1) {
                                 System.out.printf("%-10d | %-15s | %-15s | %-40s | %-15d | %-20d | %-15d%n",
                                         adherent.getIdentifiant(), adherent.getNom(), adherent.getPrenom(),
                                         adherent.getAdresse(), adherent.getTypeAdherent(),
@@ -227,7 +232,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -255,12 +260,14 @@ public class Biblio {
                     case "1" -> {
                         // Fonction Ajouter un Document
                         System.out.println("=== Ajouter un document ===");
-                        System.out.print("Titre du document : ");
+                        System.out.println("Titre du document : ");
+                        scanner.nextLine(); // Pour consommer le retour à la ligne
                         String titre = scanner.nextLine();
-                        System.out.print("Localisation du document : ");
+                        System.out.println("Localisation du document : ");
                         String localisation = scanner.nextLine();
-                        System.out.print("Nombre d'exemplaires : ");
-                        int nb = scanner.nextInt();
+                        scanner.nextLine(); // Pour consommer le retour à la ligne
+                        System.out.println("Nombre d'exemplaires : ");
+                        int nb = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         // Création d'un nouvel objet Document
@@ -272,7 +279,8 @@ public class Biblio {
                         try {
                             int code_doc = DocumentManager.ajouterDocument(document);
                             System.out.print("Type du document (1.Livre, 2.Mémoire, 3.Article, 4.Magazine) : ");
-                            int type = scanner.nextInt();
+                            int[] valeursAcceptees = {1,2,3,4};
+                            int type = ScannerUtils.demanderEntier(valeursAcceptees);
                             switch (type){
                                     case 1 ->{
                                             System.out.println("=== Ajouter un livre ===");
@@ -361,7 +369,7 @@ public class Biblio {
                         // Fonction Modifier un Document
                         System.out.println("=== Modifier un document ===");
                         System.out.print("Identifiant du document à modifier : ");
-                        int idDocument = scanner.nextInt();
+                        int idDocument = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         // Recherche du document à modifier
@@ -386,7 +394,7 @@ public class Biblio {
                         }
 
                         System.out.print("Nouveau nombre d'exemplaires (0 pour ne pas modifier) : ");
-                        int nouveauNbExemplaires = scanner.nextInt();
+                        int nouveauNbExemplaires = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
                         if (nouveauNbExemplaires != 0) {
                             documentAModifier.setNbExemplaires(nouveauNbExemplaires);
@@ -562,7 +570,7 @@ public class Biblio {
                         // Fonction Supprimer un Document
                         System.out.println("=== Supprimer un document ===");
                         System.out.print("Identifiant du document à supprimer : ");
-                        int idDocumentASupprimer = scanner.nextInt();
+                        int idDocumentASupprimer = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         // Recherche du document à supprimer
@@ -611,23 +619,23 @@ public class Biblio {
                         for (Livre document : documents1) {
                             type = "Livre";
                             auteurEditeurCandidat = ((Livre) document).getAuteur() + "/" + ((Livre) document).getEditeur();
-                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCode(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
+                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCodeDoc(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
                         }
                         for (Memoire document : documents3) {
                             type = "Mémoire";
                             auteurEditeurCandidat = ((Memoire) document).getNomCandidat();
-                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCode(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
+                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCodeDoc(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
                         }
                         for (Magazine document : documents2) {
                             type = "Magazine";
                             auteurEditeurCandidat = ((Magazine) document).getFrequenceParution();
                             
-                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCode(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
+                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCodeDoc(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
                         }
                         for (Article document : documents4) {
                             type = "Article";
                             auteurEditeurCandidat = ((Article) document).getAuteur();
-                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCode(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
+                            System.out.printf("| %-10d | %-30s | %-20s | %-20d | %-20s | %-20s |\n", document.getCodeDoc(), document.getTitre(), document.getLocalisation(), document.getNbExemplaires(), type, auteurEditeurCandidat);
                         }
                         System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
                     }
@@ -640,7 +648,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -673,7 +681,7 @@ public class Biblio {
                                     System.out.println("=== Ajout d'un emprunt ===");
                                     // Demander et récupérer l'identifiant de l'adhérent
                                     System.out.print("Identifiant de l'adhérent : ");
-                                    int idAdherent = scanner.nextInt();
+                                    int idAdherent = ScannerUtils.demanderEntier();
                                     scanner.nextLine(); // Consommer le retour à la ligne
                                     
                                     // Vérifier si l'adhérent est éligible
@@ -685,7 +693,7 @@ public class Biblio {
                                     
                                     // Demander et récupérer le code du document
                                     System.out.print("Code du document : ");
-                                    int codeDocument = scanner.nextInt();
+                                    int codeDocument = ScannerUtils.demanderEntier();
                                     scanner.nextLine(); // Consommer le retour à la ligne
 
                                     // Vérifier si le document est disponible
@@ -725,7 +733,7 @@ public class Biblio {
                                             System.out.println("=== Modification d'un emprunt ===");
                                             // Demander et récupérer l'identifiant de l'emprunt à modifier
                                             System.out.print("Identifiant de l'emprunt : ");
-                                            int idEmprunt = scanner.nextInt();
+                                            int idEmprunt = ScannerUtils.demanderEntier();
                                             scanner.nextLine(); // Consommer le retour à la ligne
 
                                             // Rechercher l'emprunt dans la base de données
@@ -775,7 +783,7 @@ public class Biblio {
                         System.out.println("=== Suppression d'un emprunt ===");
                         // Demander et récupérer l'identifiant de l'emprunt à supprimer
                         System.out.print("Identifiant de l'emprunt : ");
-                        int idEmprunt = scanner.nextInt();
+                        int idEmprunt = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Consommer le retour à la ligne
 
                         // Rechercher l'emprunt dans la base de données
@@ -858,7 +866,7 @@ public class Biblio {
                         // Fonction Enregistrer un retour
                         try {
                             System.out.print("Entrez l'identifiant de l'emprunt à retourner : ");
-                            int idEmprunt = scanner.nextInt();
+                            int idEmprunt = ScannerUtils.demanderEntier();
                             scanner.nextLine(); // Consommer le retour à la ligne
 
                             // Vérifier si l'emprunt existe
@@ -904,7 +912,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -941,7 +949,8 @@ public class Biblio {
                         System.out.print("Password : ");
                         String password = scanner.nextLine();
                         System.out.print("Role  (1: Admin, 2: SuperAdmin,) : ");
-                        int role = scanner.nextInt();
+                        int[] valeursAcceptees = {1,2};
+                        int role = ScannerUtils.demanderEntier(valeursAcceptees);
                         scanner.nextLine(); // Pour consommer le retour à la ligne
                         
                         Utilisateur utilisateur = new Utilisateur(nom,login,password,role);
@@ -958,7 +967,7 @@ public class Biblio {
                         // Actions pour Modifier un Utilisateur
                         System.out.println("=== Modifier un utilisateur ===");
                         System.out.print("Identifiant de l'utilisateur à modifier : ");
-                        int identifiant = scanner.nextInt();
+                        int identifiant = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         try {
@@ -989,7 +998,7 @@ public class Biblio {
                         // Actions pour Supprimer un Adherent
                         System.out.println("=== Supprimer un utilisateur ===");
                         System.out.print("Identifiant de l'utilisateur à supprimer : ");
-                        int identifiant = scanner.nextInt();
+                        int identifiant = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Consommer le retour à la ligne
 
                         try {
@@ -1030,14 +1039,15 @@ public class Biblio {
                         // Fonction Modifier Etat 
                         System.out.println("=== Modifier etat un utilisateur ===");
                         System.out.print("Identifiant de l'utilisateur à modifier : ");
-                        int identifiant = scanner.nextInt();
+                        int identifiant = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Pour consommer le retour à la ligne
 
                         try {
                             Utilisateur utilisateur = UtilisateurManager.rechercherUtilisateurParId(identifiant);
                             if (utilisateur != null) {
                                 System.out.print("Nouveau etat  (1.bloquer 0.debloquer, laisser vide pour ne pas modifier) : ");
-                                int etat = scanner.nextInt();
+                                int[] valeursAcceptees = {0,1};
+                                int etat = ScannerUtils.demanderEntier(valeursAcceptees);
                                 if (etat == 0 || etat == 1) {
                                     utilisateur.setEtat(etat);
                                 } else {
@@ -1057,7 +1067,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -1082,7 +1092,7 @@ public class Biblio {
                         // Fonction de recherche par id
                         System.out.println("=== Rechercher un adhérent par ID ===");
                         System.out.print("Entrez l'identifiant de l'adhérent : ");
-                        int idRecherche = scanner.nextInt();
+                        int idRecherche = ScannerUtils.demanderEntier();
                         try {
                             Adherent adherent = AdherentManager.rechercherAdherentParId(idRecherche);
                             if (adherent == null) {
@@ -1105,17 +1115,19 @@ public class Biblio {
                         // Fonction de recherche par type
                             System.out.println("=== Rechercher des adhérents par Type ===");
                         System.out.print("Entrez le type d'adhérent (1: Etudiant, 2: Enseignant, 3: Visiteur) : ");
-                        int typeRecherche = scanner.nextInt();
+                        // int typeRecherche = scanner.nextInt();
+                        int[] valeursAcceptees = {1,2,3};
+                        int typeRecherche = ScannerUtils.demanderEntier(valeursAcceptees);
                         try {
-                            List<Adherent> adherents = AdherentManager.rechercherAdherentParType(typeRecherche);
-                            if (adherents.isEmpty()) {
+                            List<Adherent> adherents1 = AdherentManager.rechercherAdherentParType(typeRecherche);
+                            if (adherents1.isEmpty()) {
                                 System.out.println("Aucun adhérent trouvé avec ce type.");
                             } else {
                                 System.out.println("Résultats de la recherche :");
                                 System.out.printf("%-10s | %-15s | %-15s | %-40s | %-15s | %-20s | %-15s%n",
                                         "ID", "Nom", "Prénom", "Adresse", "Type", "Nombre Max Emprunts", "Durée Prêt");
                                 System.out.println("-".repeat(120));
-                                for (Adherent adherent : adherents) {
+                                for (Adherent adherent : adherents1) {
                                     System.out.printf("%-10d | %-15s | %-15s | %-40s | %-15d | %-20d | %-15d%n",
                                             adherent.getIdentifiant(), adherent.getNom(), adherent.getPrenom(),
                                             adherent.getAdresse(), adherent.getTypeAdherent(),
@@ -1132,15 +1144,15 @@ public class Biblio {
                         System.out.print("Entrez le nom (partiel ou complet) de l'adhérent : ");
                         String nomRecherche = scanner.nextLine();
                         try {
-                            List<Adherent> adherents = AdherentManager.rechercherAdherentParNom(nomRecherche);
-                            if (adherents.isEmpty()) {
+                            List<Adherent> adherents1 = AdherentManager.rechercherAdherentParNom(nomRecherche);
+                            if (adherents1.isEmpty()) {
                                 System.out.println("Aucun adhérent trouvé avec ce nom.");
                             } else {
                                 System.out.println("Résultats de la recherche :");
                                 System.out.printf("%-10s | %-15s | %-15s | %-40s | %-15s | %-20s | %-15s%n",
                                         "ID", "Nom", "Prénom", "Adresse", "Type", "Nombre Max Emprunts", "Durée Prêt");
                                 System.out.println("-".repeat(120));
-                                for (Adherent adherent : adherents) {
+                                for (Adherent adherent : adherents1) {
                                     System.out.printf("%-10d | %-15s | %-15s | %-40s | %-15d | %-20d | %-15d%n",
                                             adherent.getIdentifiant(), adherent.getNom(), adherent.getPrenom(),
                                             adherent.getAdresse(), adherent.getTypeAdherent(),
@@ -1158,7 +1170,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -1230,7 +1242,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
                  System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
@@ -1257,7 +1269,7 @@ public class Biblio {
                         // Fonction de recherche par id
                         System.out.println("=== Recherche par Id ===");
                         System.out.println("Entrez l'ID de l'emprunt à rechercher :");
-                        int idEmprunt = scanner.nextInt();
+                        int idEmprunt = ScannerUtils.demanderEntier();
                         try {
                         Emprunt emprunt = EmpruntManager.rechercherEmpruntParId(idEmprunt);
                         if (emprunt == null) {
@@ -1279,10 +1291,12 @@ public class Biblio {
                         // Fonction de recherche par intervale Date limite
                         System.out.println("Recherche d'emprunts par intervalle de date limite");
                         System.out.print("Date de début (yyyy-MM-dd) : ");
+                        scanner.nextLine(); // Consommer le retour à la ligne
                         String debutText = scanner.nextLine();
                         System.out.print("Date de fin (yyyy-MM-dd) : ");
                         String finText = scanner.nextLine();
-
+                        System.out.println("Date entre le "+finText+" et le "+debutText);
+                        
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                         try {
                             java.util.Date debut = dateFormat.parse(debutText);
@@ -1293,7 +1307,7 @@ public class Biblio {
                             System.out.println("=== Liste des emprunts ===");
                             // En-tête du tableau
                             System.out.println("+----+---------------------+----------------------+----------------------+----------------------+");
-                            System.out.println("| ID |     Adhérent         |      Document        |      Date de début    |      Date limite     |");
+                            System.out.println("| ID |     Adhérent        |      Document        |      Date de début    |      Date limite     |");
                             System.out.println("+----+---------------------+----------------------+----------------------+----------------------+");
 
                             // Affichage des emprunts
@@ -1321,9 +1335,11 @@ public class Biblio {
                         // Fonction de recherche par intervale date Debut
                         System.out.println("Recherche d'emprunts par intervalle de date debut");
                         System.out.print("Date de début (yyyy-MM-dd) : ");
+                        scanner.nextLine(); // Consommer le retour à la ligne
                         String debutText = scanner.nextLine();
                         System.out.print("Date de fin (yyyy-MM-dd) : ");
                         String finText = scanner.nextLine();
+                        System.out.println("Date entre le "+finText+" et le "+debutText);
 
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                         try {
@@ -1364,9 +1380,11 @@ public class Biblio {
                      
                         System.out.println("Recherche d'emprunts par intervalle de date retour");
                         System.out.print("Date de début (yyyy-MM-dd) : ");
+                        scanner.nextLine(); // Consommer le retour à la ligne
                         String debutText = scanner.nextLine();
                         System.out.print("Date de fin (yyyy-MM-dd) : ");
                         String finText = scanner.nextLine();
+                        System.out.println("Date entre le "+finText+" et le "+debutText);
 
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                         try {
@@ -1409,7 +1427,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -1456,7 +1474,7 @@ public class Biblio {
                         // Fonction de recherche par identifiant
                         System.out.println("=== Recherche un utilisateur par id===");
                         System.out.print("Identifiant de l'utilisateur : ");
-                        int id = scanner.nextInt();
+                        int id = ScannerUtils.demanderEntier();
                         scanner.nextLine(); // Consommer le retour à la ligne
                         try {
                             Utilisateur utilisateur = UtilisateurManager.rechercherUtilisateurParId(id);
@@ -1480,7 +1498,7 @@ public class Biblio {
                     case "00" -> {
                         this.menuPrincipal();
                     }
-                    case "0" -> System.out.println("Au revoir !");
+                    case "0" -> {System.out.println("Au revoir !"); exit(0);}
                     default -> System.out.println("Choix invalide, veuillez réessayer.");
                 }
             } while (!"0".equals(choix));
@@ -1520,7 +1538,7 @@ public class Biblio {
                     // Revenir au menu principal
                     this.menuPrincipal();
                 }
-                default -> System.out.println("Au revoir !");
+                default -> {System.out.println("Au revoir !"); exit(0);}
             }
         } catch (SQLException ex) {
             Logger.getLogger(Biblio.class.getName()).log(Level.SEVERE, null, ex);
@@ -1533,9 +1551,26 @@ public class Biblio {
     public static void main(String[] args) {
         System.out.println("Bon retour sur BiblioSur");
         Biblio bibliotheque = new Biblio();
-        bibliotheque.menuPrincipal();
-        
-        
+        System.out.println("Bienvenue dans l'application de gestion | Connectez-vous!");
+        try (Scanner scanner = new Scanner(System.in)) {
+            Utilisateur utilisateur;
+            do{
+            System.out.print("Login : ");
+            String login = scanner.nextLine();
+            System.out.print("Mot de passe : ");
+            String password = scanner.nextLine();
+            
+            
+            utilisateur = Auth.seConnecter(login, password);
+            if (utilisateur != null) {
+                System.out.println("Connexion réussie !");
+                System.out.println("Bienvenue, " + utilisateur.getNom() + " !");
+                bibliotheque.menuPrincipal();
+            } else {
+                System.out.println("Identifiant ou mot de passe incorrect !");
+            }
+            }while(utilisateur == null);
+        }
     }
         
 }

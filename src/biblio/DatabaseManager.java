@@ -18,8 +18,10 @@ public class DatabaseManager {
     private static Connection connection;
 
     public static Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        try{ 
+             connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        }catch(SQLException e){
+            System.out.println("Erreur lors de la connexion a la BD, verifiez si le server est lancé et relancez l'app ");
         }
         return connection;
     }

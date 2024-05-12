@@ -75,6 +75,8 @@ public class LivreManager {
                 Date dateEdition = resultSet.getDate("dateEdition");
                 Livre livre = new Livre(titre, localisation, nbExemplaires, auteur, editeur, dateEdition);
                 livre.setCode(code);
+                int codeDoc = resultSet.getInt("livre.code_doc");
+                livre.setCodeDoc(codeDoc);
                 livres.add(livre);
             }
         } catch (SQLException e) {

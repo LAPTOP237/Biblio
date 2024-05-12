@@ -74,6 +74,8 @@ public class MemoireManager {
                 Date dateSoutenance = resultSet.getDate("dateSoutenance");
                 Memoire memoire = new Memoire(titre, localisation, nbExemplaires, nomCandidat, titreMemoire, dateSoutenance);
                 memoire.setCode(code);
+                int codeDoc = resultSet.getInt("memoire.code_doc");
+                memoire.setCodeDoc(codeDoc);
                 memoires.add(memoire);
             }
         } catch (SQLException e) {

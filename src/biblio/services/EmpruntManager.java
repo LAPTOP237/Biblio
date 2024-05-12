@@ -148,7 +148,7 @@ public class EmpruntManager {
     //Methode pour la liste des Adherents retardataires
     public static List<Adherent> listerAdherentsRetardataires() {
         List<Adherent> adherentsRetardataires = new ArrayList<>();
-        String query = "SELECT DISTINCT e.adherent_id, a.nom, a.prenom FROM emprunt e " +
+        String query = "SELECT DISTINCT e.*, a.* FROM emprunt e " +
                        "INNER JOIN adherent a ON e.adherent_id = a.identifiant " +
                        "WHERE e.dateRetour IS NULL AND e.dateLimite < CURDATE()";
         try (Connection connection = DatabaseManager.getConnection();

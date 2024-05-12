@@ -28,7 +28,7 @@ public class Auth {
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 utilisateur = new Utilisateur();
-                utilisateur.setIdentifiant(resultSet.getInt("id"));
+                utilisateur.setIdentifiant(resultSet.getInt("identifiant"));
                 utilisateur.setNom(resultSet.getString("nom"));
                 utilisateur.setLogin(resultSet.getString("login"));
                 utilisateur.setPassword(resultSet.getString("password"));

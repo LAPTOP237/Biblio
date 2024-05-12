@@ -76,6 +76,8 @@ public class ArticleManager {
                 Date datePublication = resultSet.getDate("datePublication");
                 Article article = new Article(titre, localisation, nbExemplaires, auteur, datePublication);
                 article.setCode(code);
+                int codeDoc = resultSet.getInt("article.code_doc");
+                article.setCodeDoc(codeDoc);
                 articles.add(article);
             }
         } catch (SQLException e) {

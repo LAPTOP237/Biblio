@@ -68,6 +68,8 @@ public class MagazineManager {
                 String frequenceParution = resultSet.getString("frequenceParution");
                 Magazine magazine = new Magazine(titre, localisation, nbExemplaires, frequenceParution);
                 magazine.setCode(code);
+                int codeDoc = resultSet.getInt("magazine.code_doc");
+                magazine.setCodeDoc(codeDoc);
                 magazines.add(magazine);
             }
         } catch (SQLException e) {

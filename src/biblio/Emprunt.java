@@ -16,7 +16,10 @@ import java.util.logging.Logger;
  */
 public class Emprunt {
     // Default constructor
-    public Emprunt(){}
+    public Emprunt(){
+        this.adherent = new Adherent();
+        this.document = new Document();
+    }
      /**
      * 
      * @param adherent
